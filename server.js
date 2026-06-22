@@ -20,7 +20,6 @@ app.use(express.json());
 // ROTA 1: POST - Salva o relacionamento da localização do usuário com o local
 // =========================================================================
 app.post('/api/historico', (themeReq, res) => {
-  // 👤 ADICIONADO: 'usuario' recebido dinamicamente do corpo da requisição do app
   const { usuario, userLatitude, userLongitude, ecoestacaoNome, ecoestacaoBairro } = themeReq.body;
 
   // Validação básica dos dados obrigatórios
@@ -30,8 +29,8 @@ app.post('/api/historico', (themeReq, res) => {
 
   // Cria o novo objeto de registro baseado nos campos que você tem na API
   const novoRegistro = {
-    id: Date.now(), // Gera um ID único simples baseado no timestamp
-    usuario: usuario || 'Anônimo', // 👤 ADICIONADO: Grava o nome de quem fez o check-in no JSON
+    id: Date.now(), 
+    usuario: usuario || 'Anônimo', 
     userLatitude,
     userLongitude,
     ecoestacaoNome,
@@ -40,17 +39,13 @@ app.post('/api/historico', (themeReq, res) => {
   };
 
   try {
-    // Lê o arquivo JSON existente
     const fileData = fs.readFileSync(FILE_PATH, 'utf-8');
     const historico = JSON.parse(fileData);
 
-    // Adiciona o novo registro na lista
     historico.push(novoRegistro);
 
-    // Salva de volta no arquivo JSON
     fs.writeFileSync(FILE_PATH, JSON.stringify(historico, null, 2));
 
-    // Retorna o registro criado com status 201 (Created)
     return res.status(201).json(novoRegistro);
   } catch (error) {
     return res.status(500).json({ error: 'Erro ao salvar os dados no servidor.' });
@@ -62,11 +57,9 @@ app.post('/api/historico', (themeReq, res) => {
 // =========================================================================
 app.get('/api/historico', (req, res) => {
   try {
-    // Lê os dados salvos no arquivo
     const fileData = fs.readFileSync(FILE_PATH, 'utf-8');
     const historico = JSON.parse(fileData);
 
-    // Retorna a lista completa para o App
     return res.json(historico);
   } catch (error) {
     return res.status(500).json({ error: 'Erro ao ler os dados do servidor.' });
@@ -74,20 +67,22 @@ app.get('/api/historico', (req, res) => {
 });
 
 // =========================================================================
-// ✨ ROTA 3 (ADICIONADA): DELETE - Limpa o histórico do arquivo JSON
+// ✨ ROTA 3: DELETE - Limpa o histórico do arquivo JSON
 // =========================================================================
 app.delete('/api/historico', (req, res) => {
   try {
-    // Sobrescreve o arquivo gravando uma array vazia []
     fs.writeFileSync(FILE_PATH, JSON.stringify([], null, 2));
-    
     return res.status(200).json({ message: 'Histórico esvaziado com sucesso!' });
   } catch (error) {
     return res.status(500).json({ error: 'Erro ao limpar os dados no servidor.' });
   }
 });
 
-// Inicializa o servidor na porta configurada
-app.listen(PORT, () => {
-  console.log(`🚀 Servidor backend rodando em http://localhost:${PORT}`);
+// =========================================================================
+// 🚀 INICIALIZAÇÃO ALTERADA PARA ACEITAR CONEXÕES EXTERNAS (0.0.0.0)
+// =========================================================================
+app.listen(PORT, '0.0.0.0', () => {
+  console.log(`🚀 Servidor backend acessível na rede local!`);
+  console.log(`💻 No PC: http://localhost:${PORT}`);
+  console.log(`📱 No celular use: http://192.168.1.203:${PORT}`);
 });
